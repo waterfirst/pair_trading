@@ -9,7 +9,7 @@ from itertools import product
 from scipy import stats
 
 # 페이지 설정
-st.set_page_config(page_title="KOSPI와 S&P 200 페어트레이딩 분석", layout="wide")
+st.set_page_config(page_title="KOSPI와 S&P 500 페어트레이딩 분석", layout="wide")
 
 # CSS 스타일
 st.markdown("""
@@ -30,7 +30,7 @@ st.markdown("""
 # 데이터 로드 및 전처리 함수
 @st.cache_data
 def load_and_process_data(start_date, end_date):
-    tickers = {"KOSPI": "^KS11", "S&P 200": "^AXJO"}
+    tickers = {"KOSPI": "^KS11", "S&P 500": "^AXJO"}
     data = yf.download(list(tickers.values()), start=start_date, end=end_date)['Close']
     data.columns = tickers.keys()
     return data.dropna().replace([np.inf, -np.inf], np.nan).dropna()
@@ -52,8 +52,8 @@ def calculate_zscore(spread):
 def pair_trading_analysis(data, entry_threshold=2, exit_threshold=0, base_asset="KOSPI"):
     try:
         log_returns = np.log(data / data.shift(1)).dropna()
-        correlation, p_value = correlation_test(data["KOSPI"], data["S&P 200"])
-        spread = data["KOSPI"] - data["S&P 200"]
+        correlation, p_value = correlation_test(data["KOSPI"], data["S&P 500"])
+        spread = data["KOSPI"] - data["S&P 500"]
         z_score = calculate_zscore(spread)
         
         signals = pd.Series(index=z_score.index, data='neutral')
@@ -64,9 +64,9 @@ def pair_trading_analysis(data, entry_threshold=2, exit_threshold=0, base_asset=
         position = pd.Series(np.where(z_score < -entry_threshold, 1, np.where(z_score > entry_threshold, -1, 0)), index=data.index)
         
         if base_asset == "KOSPI":
-            strategy_returns = (log_returns["KOSPI"] - log_returns["S&P 200"]) * position.shift(1).dropna()
-        else:  # S&P 200
-            strategy_returns = (log_returns["S&P 200"] - log_returns["KOSPI"]) * position.shift(1).dropna()
+            strategy_returns = (log_returns["KOSPI"] - log_returns["S&P 500"]) * position.shift(1).dropna()
+        else:  # S&P 500
+            strategy_returns = (log_returns["S&P 500"] - log_returns["KOSPI"]) * position.shift(1).dropna()
         
         cumulative_returns = (1 + strategy_returns).cumprod()
         
@@ -92,7 +92,7 @@ def pair_trading_analysis(data, entry_threshold=2, exit_threshold=0, base_asset=
 # Z-Score 최적화 함수 수정
 def optimize_z_score(data, z_scores, base_asset="KOSPI"):
     log_returns = np.log(data / data.shift(1)).dropna()
-    spread = data["KOSPI"] - data["S&P 200"]
+    spread = data["KOSPI"] - data["S&P 500"]
     z_score = calculate_zscore(spread)
     
     results = []
@@ -106,9 +106,9 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
         position[(z_score >= -exit) & (z_score <= exit)] = 0  # 청산 신호
         
         if base_asset == "KOSPI":
-            strategy_returns = (log_returns["KOSPI"] - log_returns["S&P 200"]) * position.shift(1)
-        else:  # S&P 200
-            strategy_returns = (log_returns["S&P 200"] - log_returns["KOSPI"]) * position.shift(1)
+            strategy_returns = (log_returns["KOSPI"] - log_returns["S&P 500"]) * position.shift(1)
+        else:  # S&P 500
+            strategy_returns = (log_returns["S&P 500"] - log_returns["KOSPI"]) * position.shift(1)
         
         cumulative_returns = (1 + strategy_returns).cumprod()
         total_return = cumulative_returns.iloc[-1] - 1
@@ -126,7 +126,7 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
 
 # 메인 앱 함수 수정
 def main():
-    st.title("KOSPI와 S&P 200 페어트레이딩 분석 및 전략 비교")
+    st.title("KOSPI와 S&P 500 페어트레이딩 분석 및 전략 비교")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -148,19 +148,19 @@ def main():
     kospi_optimization = optimize_z_score(data, z_scores, base_asset="KOSPI")
     kospi_best_result = kospi_optimization.loc[kospi_optimization['sharpe_ratio'].idxmax()]
     
-    # S&P 200 기반 전략 최적화
-    snp200_optimization = optimize_z_score(data, z_scores, base_asset="S&P 200")
-    snp200_best_result = snp200_optimization.loc[snp200_optimization['sharpe_ratio'].idxmax()]
+    # S&P 500 기반 전략 최적화
+    snp500_optimization = optimize_z_score(data, z_scores, base_asset="S&P 500")
+    snp500_best_result = snp500_optimization.loc[snp500_optimization['sharpe_ratio'].idxmax()]
     
     # KOSPI 기반 전략 분석
     kospi_results = pair_trading_analysis(data, entry_threshold=kospi_best_result['entry'], 
                                           exit_threshold=kospi_best_result['exit'], base_asset="KOSPI")
     
-    # S&P 200 기반 전략 분석
-    snp200_results = pair_trading_analysis(data, entry_threshold=snp200_best_result['entry'], 
-                                           exit_threshold=snp200_best_result['exit'], base_asset="S&P 200")
+    # S&P 500 기반 전략 분석
+    snp500_results = pair_trading_analysis(data, entry_threshold=snp500_best_result['entry'], 
+                                           exit_threshold=snp500_best_result['exit'], base_asset="S&P 500")
     
-    if kospi_results is None or snp200_results is None:
+    if kospi_results is None or snp500_results is None:
         return
     
     st.subheader("최적화된 전략 비교 결과")
@@ -176,28 +176,28 @@ def main():
         st.write(f"샤프 비율: {kospi_results['sharpe_ratio']:.2f}")
     
     with col2:
-        st.write("S&P 200 기반 전략 (최적화)")
-        st.write(f"최적 진입 Z-Score: {snp200_best_result['entry']:.2f}")
-        st.write(f"최적 퇴출 Z-Score: {snp200_best_result['exit']:.2f}")
-        st.write(f"총 수익률: {snp200_results['total_return']:.2%}")
-        st.write(f"연간화 수익률: {snp200_results['annualized_return']:.2%}")
-        st.write(f"샤프 비율: {snp200_results['sharpe_ratio']:.2f}")
+        st.write("S&P 500 기반 전략 (최적화)")
+        st.write(f"최적 진입 Z-Score: {snp500_best_result['entry']:.2f}")
+        st.write(f"최적 퇴출 Z-Score: {snp500_best_result['exit']:.2f}")
+        st.write(f"총 수익률: {snp500_results['total_return']:.2%}")
+        st.write(f"연간화 수익률: {snp500_results['annualized_return']:.2%}")
+        st.write(f"샤프 비율: {snp500_results['sharpe_ratio']:.2f}")
     
     # 누적 수익률 비교 그래프
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=kospi_results['cumulative_returns'].index, y=kospi_results['cumulative_returns'], name="KOSPI 기반 전략"))
-    fig.add_trace(go.Scatter(x=snp200_results['cumulative_returns'].index, y=snp200_results['cumulative_returns'], name="S&P 200 기반 전략"))
+    fig.add_trace(go.Scatter(x=snp500_results['cumulative_returns'].index, y=snp500_results['cumulative_returns'], name="S&P 500 기반 전략"))
     fig.update_layout(title="누적 수익률 비교", xaxis_title="날짜", yaxis_title="누적 수익률")
     st.plotly_chart(fig, use_container_width=True)
     
     # 이중축 그래프 생성 (KOSPI 기반 전략)
     fig_kospi = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                              subplot_titles=("KOSPI vs S&P 200", "Z-Score 및 신호등 (KOSPI 기반)", "누적 수익률 (KOSPI 기반)"),
+                              subplot_titles=("KOSPI vs S&P 500", "Z-Score 및 신호등 (KOSPI 기반)", "누적 수익률 (KOSPI 기반)"),
                               specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": False}]])
     
-    # KOSPI vs S&P 200 (이중축)
+    # KOSPI vs S&P 500 (이중축)
     fig_kospi.add_trace(go.Scatter(x=data.index, y=data["KOSPI"], name="KOSPI"), row=1, col=1, secondary_y=False)
-    fig_kospi.add_trace(go.Scatter(x=data.index, y=data["S&P 200"], name="S&P 200"), row=1, col=1, secondary_y=True)
+    fig_kospi.add_trace(go.Scatter(x=data.index, y=data["S&P 500"], name="S&P 500"), row=1, col=1, secondary_y=True)
     
     # Z-Score 및 신호등
     fig_kospi.add_trace(go.Scatter(x=kospi_results['z_score'].index, y=kospi_results['z_score'], name="Z-Score"), row=2, col=1)
@@ -230,7 +230,7 @@ def main():
     
     # Y축 레이블 설정
     fig_kospi.update_yaxes(title_text="KOSPI", secondary_y=False, row=1, col=1)
-    fig_kospi.update_yaxes(title_text="S&P 200", secondary_y=True, row=1, col=1)
+    fig_kospi.update_yaxes(title_text="S&P 500", secondary_y=True, row=1, col=1)
     fig_kospi.update_yaxes(title_text="Z-Score", row=2, col=1)
     fig_kospi.update_yaxes(title_text="누적 수익률", row=3, col=1)
     
