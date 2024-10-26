@@ -174,15 +174,20 @@ def create_pair_trading_figure(data, results, best_result, base_asset, normalize
     return fig
 
 
-def pair_trading_analysis(
-    data, entry_threshold=2, exit_threshold=0, base_asset="KOSPI"
-):
+def pair_trading_analysis(data, entry_threshold=2, exit_threshold=0, base_asset="KOSPI"):
     try:
         log_returns = np.log(data / data.shift(1)).dropna()
         correlation, p_value = correlation_test(data["KOSPI"], data["S&P 500"])
-        spread = data["KOSPI"] - data["S&P 500"]
+        
+        # spread 계산 로직 수정 - base_asset에 따라 다르게 계산
+        if base_asset == "KOSPI":
+            spread = data["KOSPI"] - data["S&P 500"]
+        else:  # S&P 500 기반
+            spread = data["S&P 500"] - data["KOSPI"]
+            
         z_score = calculate_zscore(spread)
 
+        # 신호 생성 로직은 동일하게 유지
         signals = pd.Series(index=z_score.index, data="neutral")
         signals[z_score < -entry_threshold] = "buy"
         signals[z_score > entry_threshold] = "sell"
@@ -197,11 +202,12 @@ def pair_trading_analysis(
             index=data.index,
         )
 
+        # 수익률 계산 로직
         if base_asset == "KOSPI":
             strategy_returns = (
                 log_returns["KOSPI"] - log_returns["S&P 500"]
             ) * position.shift(1).dropna()
-        else:
+        else:  # S&P 500 기반
             strategy_returns = (
                 log_returns["S&P 500"] - log_returns["KOSPI"]
             ) * position.shift(1).dropna()
@@ -230,10 +236,15 @@ def pair_trading_analysis(
         st.error(f"분석 중 오류가 발생했습니다: {str(e)}")
         return None
 
-
 def optimize_z_score(data, z_scores, base_asset="KOSPI"):
     log_returns = np.log(data / data.shift(1)).dropna()
-    spread = data["KOSPI"] - data["S&P 500"]
+    
+    # spread 계산 로직 수정
+    if base_asset == "KOSPI":
+        spread = data["KOSPI"] - data["S&P 500"]
+    else:  # S&P 500 기반
+        spread = data["S&P 500"] - data["KOSPI"]
+        
     z_score = calculate_zscore(spread)
 
     results = []
@@ -242,15 +253,15 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
             continue
 
         position = pd.Series(0, index=z_score.index)
-        position[z_score < -entry] = 1
-        position[z_score > entry] = -1
-        position[(z_score >= -exit) & (z_score <= exit)] = 0
+        position[z_score < -entry] = 1  # 매수 신호
+        position[z_score > entry] = -1  # 매도 신호
+        position[(z_score >= -exit) & (z_score <= exit)] = 0  # 청산 신호
 
         if base_asset == "KOSPI":
             strategy_returns = (
                 log_returns["KOSPI"] - log_returns["S&P 500"]
             ) * position.shift(1)
-        else:
+        else:  # S&P 500 기반
             strategy_returns = (
                 log_returns["S&P 500"] - log_returns["KOSPI"]
             ) * position.shift(1)
@@ -262,14 +273,12 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
             np.sqrt(252) * strategy_returns.mean() / std_dev if std_dev != 0 else 0
         )
 
-        results.append(
-            {
-                "entry": entry,
-                "exit": exit,
-                "total_return": total_return,
-                "sharpe_ratio": sharpe_ratio,
-            }
-        )
+        results.append({
+            "entry": entry,
+            "exit": exit,
+            "total_return": total_return,
+            "sharpe_ratio": sharpe_ratio,
+        })
 
     return pd.DataFrame(results)
 
