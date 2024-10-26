@@ -301,7 +301,7 @@ def main():
 
     col1, col2 = st.columns(2)
     with col1:
-        start_date = st.date_input("시작 날짜", value=datetime(2020, 1, 1))
+        start_date = st.date_input("시작 날짜", value=datetime(2023, 1, 1))
     with col2:
         end_date = st.date_input("종료 날짜", value=datetime.now())
 
