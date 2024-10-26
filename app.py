@@ -174,46 +174,52 @@ def create_pair_trading_figure(data, results, best_result, base_asset, normalize
     return fig
 
 
-def pair_trading_analysis(data, entry_threshold=2, exit_threshold=0, base_asset="KOSPI"):
+def pair_trading_analysis(
+    data, entry_threshold=2, exit_threshold=0, base_asset="KOSPI"
+):
     try:
         log_returns = np.log(data / data.shift(1)).dropna()
         correlation, p_value = correlation_test(data["KOSPI"], data["S&P 500"])
-        
+
         # KOSPI 기반일 때와 S&P 500 기반일 때 포지션이 반대가 되도록 수정
         if base_asset == "KOSPI":
             # KOSPI 기반 전략
             spread = data["KOSPI"] - data["S&P 500"]
             z_score = calculate_zscore(spread)
-            
+
             position = pd.Series(
                 np.where(
                     z_score < -entry_threshold,
                     1,  # KOSPI 매수, S&P 500 매도
-                    np.where(z_score > entry_threshold, -1, 0)  # KOSPI 매도, S&P 500 매수
+                    np.where(
+                        z_score > entry_threshold, -1, 0
+                    ),  # KOSPI 매도, S&P 500 매수
                 ),
                 index=data.index,
             )
-            
+
             # KOSPI long, S&P 500 short 전략
             strategy_returns = position.shift(1).dropna() * (
                 log_returns["KOSPI"] - log_returns["S&P 500"]
             )
-            
+
         else:
             # S&P 500 기반 전략
             spread = data["S&P 500"] - data["KOSPI"]
             z_score = calculate_zscore(spread)
-            
+
             # S&P 500 기반에서는 포지션을 반대로 취함
             position = pd.Series(
                 np.where(
                     z_score < -entry_threshold,
-                    -1,  # S&P 500 매도, KOSPI 매수 
-                    np.where(z_score > entry_threshold, 1, 0)  # S&P 500 매수, KOSPI 매도
+                    -1,  # S&P 500 매도, KOSPI 매수
+                    np.where(
+                        z_score > entry_threshold, 1, 0
+                    ),  # S&P 500 매수, KOSPI 매도
                 ),
                 index=data.index,
             )
-            
+
             # S&P 500 long, KOSPI short 전략
             strategy_returns = position.shift(1).dropna() * (
                 log_returns["S&P 500"] - log_returns["KOSPI"]
@@ -243,15 +249,16 @@ def pair_trading_analysis(data, entry_threshold=2, exit_threshold=0, base_asset=
             "annualized_return": annualized_return,
             "sharpe_ratio": sharpe_ratio,
             "strategy_returns": strategy_returns,
-            "position": position  # 디버깅을 위해 position도 반환
+            "position": position,  # 디버깅을 위해 position도 반환
         }
     except Exception as e:
         st.error(f"분석 중 오류가 발생했습니다: {str(e)}")
         return None
 
+
 def optimize_z_score(data, z_scores, base_asset="KOSPI"):
     log_returns = np.log(data / data.shift(1)).dropna()
-    
+
     if base_asset == "KOSPI":
         spread = data["KOSPI"] - data["S&P 500"]
         z_score = calculate_zscore(spread)
@@ -269,7 +276,7 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
             position[z_score < -entry] = 1
             position[z_score > entry] = -1
             position[(z_score >= -exit) & (z_score <= exit)] = 0
-            
+
             strategy_returns = position.shift(1) * (
                 log_returns["KOSPI"] - log_returns["S&P 500"]
             )
@@ -277,9 +284,9 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
             # S&P 500 기반에서는 포지션을 반대로 취함
             position = pd.Series(0, index=z_score.index)
             position[z_score < -entry] = -1  # 반대로
-            position[z_score > entry] = 1    # 반대로
+            position[z_score > entry] = 1  # 반대로
             position[(z_score >= -exit) & (z_score <= exit)] = 0
-            
+
             strategy_returns = position.shift(1) * (
                 log_returns["S&P 500"] - log_returns["KOSPI"]
             )
@@ -291,12 +298,14 @@ def optimize_z_score(data, z_scores, base_asset="KOSPI"):
             np.sqrt(252) * strategy_returns.mean() / std_dev if std_dev != 0 else 0
         )
 
-        results.append({
-            "entry": entry,
-            "exit": exit,
-            "total_return": total_return,
-            "sharpe_ratio": sharpe_ratio,
-        })
+        results.append(
+            {
+                "entry": entry,
+                "exit": exit,
+                "total_return": total_return,
+                "sharpe_ratio": sharpe_ratio,
+            }
+        )
 
     return pd.DataFrame(results)
 
