@@ -1,0 +1,219 @@
+# 한국 주식 페어 트레이딩 시스템 - Git 무시 파일
+
+# Python 관련
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# 환경 변수
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+.idea/
+
+# Streamlit 관련
+.streamlit/
+
+# 데이터 파일
+data/
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.h5
+*.hdf5
+
+# 로그 파일
+*.log
+logs/
+
+# 임시 파일
+*.tmp
+*.temp
+temp/
+tmp/
+
+# 백업 파일
+*.bak
+*.backup
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+
+# 프로젝트 특정 파일
+config_local.py
+secrets.py
+api_keys.py
+credentials.json
+
+# 캐시 파일
+.cache/
+cache/
+
+# 결과 파일
+results/
+output/
+reports/
+
+# 성능 프로파일링
+*.prof
+
+# 문서 빌드
+docs/_build/
+docs/build/
+
+# 개발용 노트북
+notebooks/
+*.ipynb
+
+# 테스트 커버리지
+.coverage
+htmlcov/
+
+# 플랫폼별 실행파일
+*.exe
+*.app
+*.deb
+*.rpm
+
+# 압축 파일
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 데이터베이스
+*.db
+*.sqlite
+*.sqlite3
+
+# Redis dump
+dump.rdb
+
+# 기타
+*.swp
+*.swo
+*~
+.vscode/
+*.orig
