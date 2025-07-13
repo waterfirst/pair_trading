@@ -1,8 +1,41 @@
-streamlit
-yfinance
-pandas
-numpy
-plotly
-concurrent
-requests
-io
+# 한국 주식 페어 트레이딩 분석 시스템 - 필수 패키지
+
+# 웹 애플리케이션 프레임워크
+streamlit>=1.28.0
+
+# 데이터 수집 및 처리
+FinanceDataReader>=0.9.31
+yfinance>=0.2.18
+pandas>=1.5.0
+numpy>=1.24.0
+
+# 통계 분석 및 계량 경제학
+scipy>=1.10.0
+statsmodels>=0.14.0
+scikit-learn>=1.3.0
+
+# 시각화
+plotly>=5.15.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# 기타 유틸리티
+requests>=2.31.0
+datetime
+warnings
+itertools
+typing
+re
+
+# 선택적 패키지 (성능 향상용)
+numba>=0.57.0
+bottleneck>=1.3.0
+
+# 개발 및 테스트용 (선택사항)
+# pytest>=7.4.0
+# jupyter>=1.0.0
+# notebook>=6.5.0
+
+# 배포용 (선택사항)
+# gunicorn>=21.2.0
+# uvicorn>=0.23.0
